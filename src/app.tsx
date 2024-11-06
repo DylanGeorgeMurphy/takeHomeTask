@@ -11,7 +11,7 @@ import {
 import "./app.css";
 import { fsDriver } from "vinxi/dist/types/runtime/storage";
 import { cn } from "../twUtil";
-import { getFamilies, getFamilyByID } from "../db";
+import { addNote, deleteNote, getFamilies, getFamilyByID } from "../db";
 import { Notes } from "./components/Notes";
 import { Files } from "./components/Files";
 import Button from "./components/Button";
@@ -84,7 +84,7 @@ function App() {
   const [selectedTab, setSelectedTab] = createSignal<Ttabs>("Notes");
   const [selectedFamilyID, setSelectedFamilyID] = createSignal<number>(0);
 
-  const [familyData] = createResource(selectedFamilyID, getFamilyByID);
+  const [familyData, {refetch:refetchFamilyData}] = createResource(selectedFamilyID, getFamilyByID);
 
   const [currentModal, setCurrentModal] = createSignal<JSX.Element>(
     null
@@ -107,7 +107,10 @@ function App() {
 
   function onAddNote() {
     setCurrentModal(<AddNoteModal onConfirm={(note)=>{
-      alert("adding note: " + JSON.stringify(note))
+      const newNote = {...note, family_id:selectedFamilyID()}
+      addNote(newNote).then(
+        refetchFamilyData
+      );
       setCurrentModal(null);
     }} onCancel={()=>{
       setCurrentModal(null);
@@ -115,7 +118,11 @@ function App() {
   }
 
   function onDeleteNote(id: number) {
-    alert("deleting, " + id);
+    deleteNote(
+      id
+    ).then(
+      refetchFamilyData
+    )
   }
 
 

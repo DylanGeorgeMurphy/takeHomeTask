@@ -13,6 +13,19 @@ export async function getFamilies() {
   return data;
 }
 
+export async function deleteNote(id:number){
+  const response = await supabase
+  .from("Notes")
+  .delete()
+  .eq('id', id);
+}
+
+export async function addNote(note:{title:string, content:string, family_id:number}){
+  const {error} = await supabase
+  .from("Notes")
+  .insert(note)
+}
+
 export async function getFamilyByID(id: number) {
   
   let {data} = await supabase

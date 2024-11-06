@@ -25,7 +25,6 @@ export const Notes = (props: {
             setSelectedNoteIndex(null);
           }} class="bg-red-500">Delete Note</Button>
         </Show>
-
         <Button onClick={()=>{props.onRequestNewNote(); setSelectedNoteIndex(null)}}>New Note</Button>
       </div>
 
