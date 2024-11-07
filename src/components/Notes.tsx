@@ -15,7 +15,7 @@ export const Notes = (props: {
   const [selectedNoteIndex, setSelectedNoteIndex] = createSignal<number | null>(null);
 
   return (
-    <div class="w-full h-full p-4 relative">
+    <div class="w-full h-full p-4 relative ">
       <div class="absolute bottom-0 right-0 flex pr-4 pb-4 gap-4">
         <Show when={selectedNoteIndex() != null}>
           <Button onClick={()=>{
@@ -28,22 +28,25 @@ export const Notes = (props: {
         <Button onClick={()=>{props.onNewNote(); setSelectedNoteIndex(null)}}>New Note</Button>
       </div>
 
-      <For each={props.notes}>
-        {(note, index) => (
-          <div
-            onClick={() =>
-              setSelectedNoteIndex((prev) => (prev == index() ? null : index()))
-            }
-            class={cn(
-              "p-2 hover:bg-gray-100 rounded-md",
-              selectedNoteIndex() == index() && "bg-gray-200 hover:bg-gray-200"
-            )}
-          >
-            <p class="font-semibold pb-2">{note.title}</p>
-            <p>{note.content}</p>
-          </div>
-        )}
-      </For>
+      <div class=" h-full overflow-y-auto">
+        <For each={props.notes}>
+          {(note, index) => (
+            <div
+              onClick={() =>
+                setSelectedNoteIndex((prev) => (prev == index() ? null : index()))
+              }
+              class={cn(
+                "p-2 hover:bg-gray-100 rounded-md",
+                selectedNoteIndex() == index() && "bg-gray-200 hover:bg-gray-200"
+              )}
+            >
+              <p class="font-semibold pb-2">{note.title}</p>
+              <p>{note.content}</p>
+            </div>
+          )}
+        </For>
+      </div>
+
     </div>
   );
 };

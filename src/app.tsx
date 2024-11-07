@@ -240,7 +240,7 @@ function App() {
           </For>
         </div>
 
-        <div class="w-full h-full rounded-md shadow-lg border-2 border-gray-100">
+        <div class="w-full  min-h-0 h-full rounded-md shadow-lg border-2 border-gray-100">
           <Show when={selectedTab() == "Notes"} fallback={
             <Files
             onRequestDeleteFile={
