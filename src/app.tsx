@@ -1,5 +1,5 @@
 import {
-  children,
+
   createMemo,
   createResource,
   createSignal,
@@ -10,16 +10,27 @@ import {
   Switch,
 } from "solid-js";
 import "./app.css";
-import { fsDriver } from "vinxi/dist/types/runtime/storage";
 import { cn } from "../twUtil";
-import { addNote, deleteFile, deleteNote, downloadFile, getFamilies, getFamilyByID, getFiles } from "../db";
+import {
+  addNote,
+  deleteFile,
+  deleteNote,
+  downloadFile,
+  getFamilies,
+  getFamilyByID,
+  getFiles,
+  uploadFile,
+} from "../db";
 import { Notes } from "./components/Notes";
 import { Files } from "./components/Files";
 import Button from "./components/Button";
+import { createFileUploader, UploadFile } from "@solid-primitives/upload";
 
-function Modal(props: { children: JSX.Element, class?:string }) {
+function Modal(props: { children: JSX.Element; class?: string }) {
   return (
-    <div class={cn("bg-white py-4 px-8 rounded-md shadow-lg", props.class)}>{props.children}</div>
+    <div class={cn("bg-white py-4 px-8 rounded-md shadow-lg", props.class)}>
+      {props.children}
+    </div>
   );
 }
 
@@ -30,29 +41,63 @@ function ConfirmDeleteModal(props: {
 }) {
   return (
     <Modal>
-
-    <div class="flex flex-col gap-4  items-center">
-      <span class="text-xl">{props.children}</span>
-      <div class="flex gap-2">
-        <Button onClick={props.onConfirm} class="w-32 bg-red-500">
-          Confirm
-        </Button>
-        <Button onClick={props.onCancel} class="w-32 bg-gray-200 text-black">
-          Cancel
-        </Button>
+      <div class="flex flex-col gap-4  items-center">
+        <span class="text-xl">{props.children}</span>
+        <div class="flex gap-2">
+          <Button onClick={props.onConfirm} class="w-32 bg-red-500">
+            Confirm
+          </Button>
+          <Button onClick={props.onCancel} class="w-32 bg-gray-200 text-black">
+            Cancel
+          </Button>
+        </div>
       </div>
-    </div>
     </Modal>
-
   );
 }
 
-
-function AddNoteModal(props: {
-  onConfirm: (note:{title:string, content:string}) => void;
+function UploadFileModal(props: {
+  onUpload: (file:UploadFile) => void;
   onCancel: () => void;
 }) {
+  const { files, selectFiles } = createFileUploader();
 
+  return (
+    <Modal class="flex flex-col items-center gap-4">
+      <Button
+        onClick={() => {
+          selectFiles((files) => console.log(files));
+        }}
+      >
+        <Show when={files().length > 0} fallback={<span>Select File</span>}>
+          <span class="text-lg">{files()[0].name}</span>
+        </Show>
+      </Button>
+
+
+      <Show when={files().length > 0}>
+        <div class="flex gap-2">
+          <Button
+            class="w-28"
+            onClick={() => {
+              props.onUpload(files()[0]);
+            }}
+          >
+            Upload
+          </Button>
+          <Button class="w-28 bg-gray-200 text-black" onClick={props.onCancel}>
+            cancel
+          </Button>
+        </div>
+      </Show>
+    </Modal>
+  );
+}
+
+function AddNoteModal(props: {
+  onConfirm: (note: { title: string; content: string }) => void;
+  onCancel: () => void;
+}) {
   const [title, setTitle] = createSignal("");
   const [content, setContent] = createSignal("");
 
@@ -62,19 +107,33 @@ function AddNoteModal(props: {
         <span class="text-2xl">New Note:</span>
         <input
           value={title()}
-          onChange={(e)=>{e.preventDefault(); setTitle(e.target.value)}}
+          onChange={(e) => {
+            e.preventDefault();
+            setTitle(e.target.value);
+          }}
           class="p-2 rounded-md border-2 border-gray-200 focus:outline-none"
           placeholder="Title"
         ></input>
         <textarea
           value={content()}
-          onChange={(e)=>{e.preventDefault(); setContent(e.target.value)}}
+          onChange={(e) => {
+            e.preventDefault();
+            setContent(e.target.value);
+          }}
           class="p-2 rounded-md border-2 border-gray-200 h-full focus:outline-none"
           placeholder="Content"
         ></textarea>
         <div class="w-full flex justify-end gap-2">
-          <Button onClick={props.onCancel} class="bg-gray-200 text-black">cancel</Button>
-          <Button onClick={()=>{props.onConfirm({title:title(), content:content()})}}>add note</Button>
+          <Button onClick={props.onCancel} class="bg-gray-200 text-black">
+            cancel
+          </Button>
+          <Button
+            onClick={() => {
+              props.onConfirm({ title: title(), content: content() });
+            }}
+          >
+            add note
+          </Button>
         </div>
       </div>
     </Modal>
@@ -87,12 +146,16 @@ function App() {
   const [selectedTab, setSelectedTab] = createSignal<Ttabs>("Notes");
   const [selectedFamilyID, setSelectedFamilyID] = createSignal<number>(0);
 
-  const [familyData, {refetch:refetchFamilyData}] = createResource(selectedFamilyID, getFamilyByID);
-  const [files, {refetch:refetchFiles}] = createResource(selectedFamilyID, getFiles);
-
-  const [currentModal, setCurrentModal] = createSignal<JSX.Element>(
-    null
+  const [familyData, { refetch: refetchFamilyData }] = createResource(
+    selectedFamilyID,
+    getFamilyByID
   );
+  const [files, { refetch: refetchFiles }] = createResource(
+    selectedFamilyID,
+    getFiles
+  );
+
+  const [currentModal, setCurrentModal] = createSignal<JSX.Element>(null);
 
   const parentNames = createMemo(() =>
     familyData()?.Parents.map((p) => p.name)
@@ -110,28 +173,26 @@ function App() {
   const [families] = createResource(getFamilies);
 
   function onAddNote() {
-    setCurrentModal(<AddNoteModal onConfirm={(note)=>{
-      const newNote = {...note, family_id:selectedFamilyID()}
-      addNote(newNote).then(
-        refetchFamilyData
-      );
-      setCurrentModal(null);
-    }} onCancel={()=>{
-      setCurrentModal(null);
-    }} />);
+    setCurrentModal(
+      <AddNoteModal
+        onConfirm={(note) => {
+          const newNote = { ...note, family_id: selectedFamilyID() };
+          addNote(newNote).then(refetchFamilyData);
+          setCurrentModal(null);
+        }}
+        onCancel={() => {
+          setCurrentModal(null);
+        }}
+      />
+    );
   }
-
 
   function onRequestDeleteNote(id: number) {
     setCurrentModal(
       <ConfirmDeleteModal
         onCancel={() => setCurrentModal(null)}
         onConfirm={() => {
-          deleteNote(
-            id
-          ).then(
-            refetchFamilyData
-          )
+          deleteNote(id).then(refetchFamilyData);
           setCurrentModal(null);
         }}
       >
@@ -140,14 +201,24 @@ function App() {
     );
   }
 
+  function onRequestUploadFile() {
+    setCurrentModal(
+      <UploadFileModal
+        onCancel={() => setCurrentModal(null)}
+        onUpload={(file) => {
+          uploadFile(file.file, selectedFamilyID(), file.name).then(refetchFiles);
+          setCurrentModal(null);
+        }}
+      />
+    );
+  }
+
   function onRequestDeleteFile(filename: string) {
     setCurrentModal(
       <ConfirmDeleteModal
         onCancel={() => setCurrentModal(null)}
         onConfirm={() => {
-          deleteFile(selectedFamilyID(), filename).then(
-            refetchFiles
-          )
+          deleteFile(selectedFamilyID(), filename).then(refetchFiles);
           setCurrentModal(null);
         }}
       >
@@ -167,9 +238,7 @@ function App() {
             class="w-full h-full bg-black opacity-70 absolute"
           ></div>
           {/* modal content */}
-          <div class="absolute">
-            {currentModal()}
-          </div>
+          <div class="absolute">{currentModal()}</div>
         </div>
       </Show>
 
@@ -241,15 +310,19 @@ function App() {
         </div>
 
         <div class="w-full  min-h-0 h-full rounded-md shadow-lg border-2 border-gray-100">
-          <Show when={selectedTab() == "Notes"} fallback={
-            <Files
-            onRequestDeleteFile={
-              onRequestDeleteFile
+          <Show
+            when={selectedTab() == "Notes"}
+            fallback={
+              <Files
+                onRequestDeleteFile={onRequestDeleteFile}
+                onUploadFile={onRequestUploadFile}
+                onDownloadFile={(name) =>
+                  downloadFile(selectedFamilyID(), name)
+                }
+                fileNames={files()}
+              />
             }
-            onUploadFile={()=>{}}
-            onDownloadFile={(name)=>downloadFile(selectedFamilyID(), name)}
-            fileNames={files()} />
-            }>
+          >
             <Notes
               onNewNote={onAddNote}
               onRequestDeleteNote={onRequestDeleteNote}

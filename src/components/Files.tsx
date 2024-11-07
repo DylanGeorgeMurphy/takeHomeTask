@@ -1,5 +1,4 @@
-import { createResource, createSignal, For, Show, splitProps } from "solid-js";
-import { downloadFile, getFiles } from "../../db";
+import {createSignal, For, Show, } from "solid-js";
 import { cn } from "../../twUtil";
 import Button from "./Button";
 
@@ -52,9 +51,10 @@ export const Files = (props: {
             >
               Download File
             </Button>
+            
           </>
         </Show>
-        <Button onClick={() => {}}>Upload File</Button>
+        <Button onClick={props.onUploadFile}>Upload File</Button>
       </div>
 
       {/* ALL THE FILES */}

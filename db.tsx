@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import { createResource, For } from "solid-js";
 import { Database } from "./supabase-types";
 import {Database as storageDatabase} from "./supabase-storage-types"
 
@@ -50,6 +49,12 @@ export async function deleteFile(family_id:number, fileName:string){
   .remove([
     `${family_id}/${fileName}`
   ])
+}
+
+export async function uploadFile(fileData:Blob,family_id:number, fileName:string ){
+  const {data, error} = await supabase
+
+  ._public.storage.from("Files").upload(`${family_id}/${fileName}`, fileData);
 }
 
 export async function getFamilies() {
