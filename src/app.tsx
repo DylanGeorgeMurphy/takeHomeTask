@@ -5,13 +5,14 @@ import {
   createSignal,
   For,
   JSX,
+  JSXElement,
   Show,
   Switch,
 } from "solid-js";
 import "./app.css";
 import { fsDriver } from "vinxi/dist/types/runtime/storage";
 import { cn } from "../twUtil";
-import { addNote, deleteNote, getFamilies, getFamilyByID } from "../db";
+import { addNote, deleteFile, deleteNote, downloadFile, getFamilies, getFamilyByID, getFiles } from "../db";
 import { Notes } from "./components/Notes";
 import { Files } from "./components/Files";
 import Button from "./components/Button";
@@ -22,15 +23,16 @@ function Modal(props: { children: JSX.Element, class?:string }) {
   );
 }
 
-function DeleteNoteModal(props: {
+function ConfirmDeleteModal(props: {
   onConfirm: () => void;
   onCancel: () => void;
+  children: JSXElement;
 }) {
   return (
     <Modal>
 
     <div class="flex flex-col gap-4  items-center">
-      <span class="text-xl">Delete Note?</span>
+      <span class="text-xl">{props.children}</span>
       <div class="flex gap-2">
         <Button onClick={props.onConfirm} class="w-32 bg-red-500">
           Confirm
@@ -44,6 +46,7 @@ function DeleteNoteModal(props: {
 
   );
 }
+
 
 function AddNoteModal(props: {
   onConfirm: (note:{title:string, content:string}) => void;
@@ -85,6 +88,7 @@ function App() {
   const [selectedFamilyID, setSelectedFamilyID] = createSignal<number>(0);
 
   const [familyData, {refetch:refetchFamilyData}] = createResource(selectedFamilyID, getFamilyByID);
+  const [files, {refetch:refetchFiles}] = createResource(selectedFamilyID, getFiles);
 
   const [currentModal, setCurrentModal] = createSignal<JSX.Element>(
     null
@@ -117,24 +121,38 @@ function App() {
     }} />);
   }
 
-  function onDeleteNote(id: number) {
-    deleteNote(
-      id
-    ).then(
-      refetchFamilyData
-    )
-  }
-
 
   function onRequestDeleteNote(id: number) {
     setCurrentModal(
-      <DeleteNoteModal
+      <ConfirmDeleteModal
         onCancel={() => setCurrentModal(null)}
         onConfirm={() => {
-          onDeleteNote(id);
+          deleteNote(
+            id
+          ).then(
+            refetchFamilyData
+          )
           setCurrentModal(null);
         }}
-      />
+      >
+        Delete Note?
+      </ConfirmDeleteModal>
+    );
+  }
+
+  function onRequestDeleteFile(filename: string) {
+    setCurrentModal(
+      <ConfirmDeleteModal
+        onCancel={() => setCurrentModal(null)}
+        onConfirm={() => {
+          deleteFile(selectedFamilyID(), filename).then(
+            refetchFiles
+          )
+          setCurrentModal(null);
+        }}
+      >
+        Delete File?
+      </ConfirmDeleteModal>
     );
   }
 
@@ -223,9 +241,17 @@ function App() {
         </div>
 
         <div class="w-full h-full rounded-md shadow-lg border-2 border-gray-100">
-          <Show when={selectedTab() == "Notes"} fallback={<Files />}>
+          <Show when={selectedTab() == "Notes"} fallback={
+            <Files
+            onRequestDeleteFile={
+              onRequestDeleteFile
+            }
+            onUploadFile={()=>{}}
+            onDownloadFile={(name)=>downloadFile(selectedFamilyID(), name)}
+            fileNames={files()} />
+            }>
             <Notes
-              onRequestNewNote={onAddNote}
+              onNewNote={onAddNote}
               onRequestDeleteNote={onRequestDeleteNote}
               notes={familyData()?.Notes}
             />

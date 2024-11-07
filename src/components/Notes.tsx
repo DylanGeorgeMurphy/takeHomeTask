@@ -10,7 +10,7 @@ export const Notes = (props: {
   }[];
 
   onRequestDeleteNote: (id: number) => void;
-  onRequestNewNote: ()=>void;
+  onNewNote: ()=>void;
 }) => {
   const [selectedNoteIndex, setSelectedNoteIndex] = createSignal<number | null>(null);
 
@@ -25,7 +25,7 @@ export const Notes = (props: {
             setSelectedNoteIndex(null);
           }} class="bg-red-500">Delete Note</Button>
         </Show>
-        <Button onClick={()=>{props.onRequestNewNote(); setSelectedNoteIndex(null)}}>New Note</Button>
+        <Button onClick={()=>{props.onNewNote(); setSelectedNoteIndex(null)}}>New Note</Button>
       </div>
 
       <For each={props.notes}>

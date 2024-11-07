@@ -7,31 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       Children: {
@@ -74,6 +49,32 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      Files: {
+        Row: {
+          family_id: number
+          file_id: string
+          id: number
+        }
+        Insert: {
+          family_id: number
+          file_id: string
+          id?: number
+        }
+        Update: {
+          family_id?: number
+          file_id?: string
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Files_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "Family"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       Notes: {
         Row: {
