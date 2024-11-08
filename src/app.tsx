@@ -1,5 +1,6 @@
 import {
 
+  createEffect,
   createMemo,
   createResource,
   createSignal,
@@ -28,20 +29,28 @@ import { AddNoteModal, ConfirmDeleteModal, UploadFileModal } from "./components/
 function App() {
   type Ttabs = "Notes" | "Files";
 
+  //state
   const [selectedTab, setSelectedTab] = createSignal<Ttabs>("Notes");
   const [selectedFamilyID, setSelectedFamilyID] = createSignal<number>(0);
+
+  const [selectedFileIndex, setSelectedFileIndex] = createSignal<number | null>(
+    null
+  );
+  const [selectedNoteIndex, setSelectedNoteIndex] = createSignal<number | null>(null);
+
+  //resets the selected note/file indexes to null when the selected family changes. 
+  createEffect((prev)=>{
+    if(prev!=selectedFamilyID){
+      setSelectedFileIndex(null);
+      setSelectedNoteIndex(null);
+    }
+    return selectedFamilyID();
+  }, null)
 
   const [familyData, { refetch: refetchFamilyData }] = createResource(
     selectedFamilyID,
     getFamilyByID
   );
-  const [files, { refetch: refetchFiles }] = createResource(
-    selectedFamilyID,
-    getFiles
-  );
-
-  const [currentModal, setCurrentModal] = createSignal<JSX.Element>(null);
-
   const parentNames = createMemo(() =>
     familyData()?.Parents.map((p) => p.name)
   );
@@ -54,6 +63,13 @@ function App() {
       return r.Workers.name;
     })
   );
+
+  const [files, { refetch: refetchFiles }] = createResource(
+    selectedFamilyID,
+    getFiles
+  );
+
+  const [currentModal, setCurrentModal] = createSignal<JSX.Element>(null);
 
   const [families] = createResource(getFamilies);
 
@@ -199,6 +215,8 @@ function App() {
             when={selectedTab() == "Notes"}
             fallback={
               <Files
+              selectedFileIndex={selectedFileIndex()}
+              setSelectedFileIndex={setSelectedFileIndex}
                 onRequestDeleteFile={onRequestDeleteFile}
                 onUploadFile={onRequestUploadFile}
                 onDownloadFile={(name) =>
@@ -209,6 +227,8 @@ function App() {
             }
           >
             <Notes
+              selectedNoteIndex={selectedNoteIndex()}
+              setSelectedNoteIndex={setSelectedNoteIndex}
               onNewNote={onAddNote}
               onRequestDeleteNote={onRequestDeleteNote}
               notes={familyData()?.Notes}

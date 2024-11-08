@@ -21,32 +21,32 @@ export const Files = (props: {
   onDownloadFile: (fileName: string) => void;
   onRequestDeleteFile: (fileName: string) => void;
   onUploadFile: () => void;
+  selectedFileIndex: number|null;
+  setSelectedFileIndex: (value:number|null)=>void
 }) => {
-  const [selectedFileIndex, setSelectedFileIndex] = createSignal<number | null>(
-    0
-  );
+
 
   return (
     <div class="w-full h-full p-4 relative">
       <div class="absolute bottom-0 right-0 flex pr-4 pb-4 gap-4">
-        <Show when={selectedFileIndex() != null}>
+        <Show when={props.selectedFileIndex != null}>
           <>
             <Button class="bg-red-500" onClick={() => {
-                const index = selectedFileIndex()
+                const index = props.selectedFileIndex
                 if(!props.fileNames||index==null)return;
                 props.onRequestDeleteFile(
                     props.fileNames[index]
                 )
-                setSelectedFileIndex(null);
+                props.setSelectedFileIndex(null);
             }}>
               delete File
             </Button>
             <Button
               onClick={() => {
-                const index = selectedFileIndex()
+                const index = props.selectedFileIndex
                 if(!props.fileNames||index==null)return;
                 props.onDownloadFile(props.fileNames[index]);
-                setSelectedFileIndex(null);
+                props.setSelectedFileIndex(null);
               }}
             >
               Download File
@@ -64,13 +64,13 @@ export const Files = (props: {
           {(fileName, index) => (
             <div
               onClick={() =>
-                setSelectedFileIndex((prev) =>
-                  prev == index() ? null : index()
+                props.setSelectedFileIndex(
+                  props.selectedFileIndex == index() ? null : index()
                 )
               }
               class={cn(
                 "flex flex-col items-center hover:bg-gray-100 p-2 rounded-lg",
-                index() == selectedFileIndex() &&
+                index() == props.selectedFileIndex &&
                   "bg-gray-200 hover:bg-gray-300"
               )}
             >
