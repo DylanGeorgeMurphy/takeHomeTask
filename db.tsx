@@ -3,7 +3,7 @@ import { Database } from "./supabase-types";
 import {Database as storageDatabase} from "./supabase-storage-types"
 
 const supabaseUrl = "https://dkvklmynteexpaxgpnwl.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdmtsbXludGVleHBheGdwbndsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMDU2MjQ0MiwiZXhwIjoyMDQ2MTM4NDQyfQ.JZsBlcVDQq7coEkjT_SA3Y4qxD7-nRXYugIBqQfv4sM"
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdmtsbXludGVleHBheGdwbndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzEwNjc0MjksImV4cCI6MjA0NjY0MzQyOX0.SWNSk6YVLzxV0HYh5ZhcJgXCjbrIKPDbJR8yuwjtOOg"
 
 
 const _public = createClient<Database>(
