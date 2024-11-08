@@ -17,6 +17,8 @@ export const Notes = (props: {
 
   return (
     <div class="w-full h-full p-4 relative ">
+
+      {/* BUTTONS */}
       <div class="absolute bottom-0 right-0 flex pr-4 pb-4 gap-4">
         <Show when={props.selectedNoteIndex != null}>
           <Button onClick={()=>{

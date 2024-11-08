@@ -29,10 +29,17 @@ import { AddNoteModal, ConfirmDeleteModal, UploadFileModal } from "./components/
 function App() {
   type Ttabs = "Notes" | "Files";
 
-  //state
+
+  //list of all the families
+  const [families] = createResource(getFamilies);
+
+  //file/note tab selection
   const [selectedTab, setSelectedTab] = createSignal<Ttabs>("Notes");
+
+  //current family being selected
   const [selectedFamilyID, setSelectedFamilyID] = createSignal<number>(0);
 
+  //note/tab current selected indexes (null is nothing selected)
   const [selectedFileIndex, setSelectedFileIndex] = createSignal<number | null>(
     null
   );
@@ -47,32 +54,36 @@ function App() {
     return selectedFamilyID();
   }, null)
 
+  //current family selected data
   const [familyData, { refetch: refetchFamilyData }] = createResource(
     selectedFamilyID,
     getFamilyByID
   );
+
+  //split the family data into seperate signals
   const parentNames = createMemo(() =>
     familyData()?.Parents.map((p) => p.name)
   );
   const childrenNames = createMemo(() =>
     familyData()?.Children.map((c) => c.name)
   );
-  const workerNames = createMemo(() =>
+  const workerNames = createMemo(() => //this is done because there is a m->m relationship between workers and families
     familyData()?.WorkerFamilyRelationship.map((r) => {
       if (!r.Workers) return null;
       return r.Workers.name;
     })
   );
 
+  //file info about the current family. 
   const [files, { refetch: refetchFiles }] = createResource(
     selectedFamilyID,
     getFiles
   );
 
+  //JSX element containing the modal to be displayed (null if nothing)
   const [currentModal, setCurrentModal] = createSignal<JSX.Element>(null);
 
-  const [families] = createResource(getFamilies);
-
+  //promps the user to input details on a new file
   function onAddNote() {
     setCurrentModal(
       <AddNoteModal
@@ -88,6 +99,7 @@ function App() {
     );
   }
 
+  //prompts the user if they're sure that they want to delete a note. 
   function onRequestDeleteNote(id: number) {
     setCurrentModal(
       <ConfirmDeleteModal
@@ -102,6 +114,7 @@ function App() {
     );
   }
 
+  //prompts the user on which file they want to upload
   function onRequestUploadFile() {
     setCurrentModal(
       <UploadFileModal
@@ -114,6 +127,7 @@ function App() {
     );
   }
 
+  //prompts the user on if they're sure that they want to delete a file
   function onRequestDeleteFile(filename: string) {
     setCurrentModal(
       <ConfirmDeleteModal
@@ -210,6 +224,7 @@ function App() {
           </For>
         </div>
 
+        {/* show notes or file pages */}
         <div class="w-full  min-h-0 h-full rounded-md shadow-lg border-2 border-gray-100">
           <Show
             when={selectedTab() == "Notes"}

@@ -1,4 +1,4 @@
-import {createSignal, For, Show, } from "solid-js";
+import { For, Show, } from "solid-js";
 import { cn } from "../../twUtil";
 import Button from "./Button";
 
@@ -28,6 +28,8 @@ export const Files = (props: {
 
   return (
     <div class="w-full h-full p-4 relative">
+
+      {/* BUTTONS */}
       <div class="absolute bottom-0 right-0 flex pr-4 pb-4 gap-4">
         <Show when={props.selectedFileIndex != null}>
           <>
@@ -75,7 +77,6 @@ export const Files = (props: {
               )}
             >
               <div
-                //   onClick={() => props.onDownloadFile(fileName)}
                 class="w-24 h-28 bg-blue-200 rounded-md flex justify-center items-center"
               >
                 <div class="w-16 h-16 opacity-20">
